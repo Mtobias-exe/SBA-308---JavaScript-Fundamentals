@@ -89,8 +89,24 @@ function isValidAG(CourseInfo, AssignmentGroup){
   }
 }
 
+// Checks if grade is valid
+function isValidGrade(AssignmentGroup) {
+  try {
+    for (let i = 0; i < AssignmentGroup.assignments.length; i++) {
+      const pointsPossible = AssignmentGroup.assignments[i].points_possible;
 
 
+      // Check for invalid data
+      if (pointsPossible === 0 || typeof pointsPossible !== 'number') {
+        throw new Error(`Invalid points for assignment ${AssignmentGroup.assignments[i].name}.`);
+      }
+    }
+    return true;
+  } catch (error) {
+    console.error(error.message);
+    return false;
+  }
+}
 
 
 
