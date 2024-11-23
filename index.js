@@ -106,8 +106,67 @@ function isValidGrade(AssignmentGroup) {
     console.error(error.message);
     return false;
   }
+
 }
 
+function getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions) {
+  // Validates data
+  if (!isValidAG(CourseInfo, AssignmentGroup)) return [];
+  if (!isValidGrade(AssignmentGroup)) return [];
+
+  let learners = [];
+
+  // Process learner submissions
+  for (let i = 0; i < LearnerSubmissions.length; i++) { 
+    let submission = LearnerSubmissions[i];
+    let learnerId = submission.learner_id;
+    let assignmentId = submission.assignment_id;
+
+    // Find the assignment by looping through assignments
+    let assignment = AssignmentGroup.assignments.find(a => a.id === assignmentId);
+    if (!assignment) continue; // Skip if assignment not found
+
+    // Skip assignments that are not yet due
+    let dueDate = new Date(assignment.due_at);
+    if (dueDate > new Date()) {
+      continue;
+    }
+
+    // Check if learner already exists in learners array
+    let learner = learners.find(l => l.id === learnerId);
+
+    if (!learner) {
+      learner = { id: learnerId, avg: 0, totalScore: 0, totalPossible: 0 };
+      learners.push(learner);
+    }
+
+    // Calculate the score for the submission and deducts 10% if late
+    let score = submission.submission.score;
+    let submittedDate = new Date(submission.submission.submitted_at);
+    if (submittedDate > dueDate) {
+      score -= assignment.points_possible * 0.1; 
+    }
+
+    let scorePercentage = score / assignment.points_possible;
+    learner[assignmentId] = ((scorePercentage * 1000) ) / 1000; 
+    learner.totalScore += score;
+    learner.totalPossible += assignment.points_possible;
+  }
+
+  // Finalize learner data and calculate averages
+  let results = [];
+  for (let i = 0; i < learners.length; i++) {
+    let learner = learners[i];
+    let scaledAvg = (learner.totalScore / learner.totalPossible) * 1000;
+    results.push(learner);
+  }
+
+  // Return the results array
+  return results;
+}
+
+const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
+console.log(result);
 
 
 
@@ -115,4 +174,7 @@ function isValidGrade(AssignmentGroup) {
 
 
 
-   
+
+
+
+  
